@@ -1,0 +1,5 @@
+.home-page {
+  height: 100vh;
+  width: 100vw;
+  background: url('../../../public/assets/background.png') no-repeat center / cover;
+}
