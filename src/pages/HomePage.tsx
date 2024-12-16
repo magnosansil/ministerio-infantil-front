@@ -24,7 +24,7 @@ const HomePage = () => {
       <Header onActionSelect={handleActionSelect} />
       <Popup
         isVisible={isPopupVisible}
-        title={`${selectedAction} - ${selectedCrud}`}
+        title={`${selectedCrud} ${selectedAction}`}
         onClose={handleClosePopup}
       >
         <p>Aqui será o conteúdo para a ação: {selectedAction}</p>

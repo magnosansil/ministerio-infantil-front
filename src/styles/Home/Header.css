@@ -5,6 +5,7 @@
   background-color: #003884;
   color: #fff;
   padding: 10px 0;
+  box-shadow: rgba(50, 50, 93, 0.25) 0px 13px 27px -5px, rgba(0, 0, 0, 0.3) 0px 8px 16px -8px;
 }
 .home-nav__list {
   display: flex;
@@ -35,6 +36,7 @@
   background: #fff;
   transition: 0.2s;
   background-color: #012960;
+  box-shadow: rgba(0, 0, 0, 0.1) 0px 20px 25px -5px, rgba(0, 0, 0, 0.04) 0px 10px 10px -5px;
 }
 .home-nav__option:hover .home-nav__dropdown {
   display: block;
