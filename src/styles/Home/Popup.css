@@ -56,22 +56,3 @@
   margin-top: 20px;
   padding: 0 20px;
 }
-
-tr:hover .action-icons {
-  display: flex !important;
-}
-
-.action-icons {
-  display: none;
-  align-items: center;
-  position: sticky;
-  right: 10px;
-  transform: translateY(10%);
-}
-
-.action-icons img {
-  width: 20px;
-  height: 20px;
-  cursor: pointer;
-  margin: 0 5px;
-}

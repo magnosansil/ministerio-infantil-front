@@ -191,10 +191,11 @@ const DataTable: React.FC<DataTableProps> = ({ data, crudName }) => {
                   <td
                     className="action-icons"
                     style={{
-                      textAlign: "center",
+                      border: "1px solid black",
                       backgroundColor: "#003884",
-                      padding: "7px 5px",
-                      borderRadius: "24px",
+                      padding: "8px 15px",
+                      position: "sticky",
+                      right: "0",
                     }}
                   >
                     <img
