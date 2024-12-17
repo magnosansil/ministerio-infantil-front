@@ -3,3 +3,31 @@
   width: 100vw;
   background: url('../../../src/assets/background.png') no-repeat center / cover;
 }
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 8px solid #e46916;
+  border-top: 8px solid #ffb27e71; 
+  border-radius: 50%;
+  animation: spin 1.5s linear infinite;
+  position: relative;
+  display: block;
+  margin: 0 auto;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.btn-action:hover {
+  background-color: #0056b3 !important;
+}
+.btn-action:disabled:hover {
+  background-color: #ccc !important;
+}

@@ -4,17 +4,17 @@ import "../styles/Home/Header.css";
 const crudOptions = [
   {
     name: "Crianças",
-    actions: ["Cadastrar", "Editar", "Pesquisar", "Excluir"],
+    actions: ["Cadastrar", "Pesquisar"],
   },
   {
     name: "Responsáveis",
-    actions: ["Cadastrar", "Editar", "Pesquisar", "Excluir"],
+    actions: ["Cadastrar", "Pesquisar"],
   },
   {
     name: "Professores",
-    actions: ["Cadastrar", "Editar", "Pesquisar", "Excluir"],
+    actions: ["Cadastrar", "Pesquisar"],
   },
-  { name: "Turmas", actions: ["Cadastrar", "Editar", "Pesquisar", "Excluir"] },
+  { name: "Turmas", actions: ["Cadastrar", "Pesquisar"] },
 ];
 
 interface HeaderProps {
