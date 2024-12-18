@@ -13,6 +13,7 @@ import Delete from "../assets/lixeira.png";
 import { deleteRequest, fetchData , patchRequest } from "../services/apiService";
 import DeleteConfirmationPopup from "./DeleteConfirmationPopup";
 import EditConfirmationPopup from "./EditButtonPopup";
+import { toast } from 'react-toastify';
 
 
 
@@ -155,7 +156,7 @@ const [editError, setEditError] = useState<string | null>(null);
       refetchData();
     } catch (error) {
       console.error("Erro ao editar o item:", error);
-      setEditError("Não foi possível editar o cadastro");
+      toast.error('Ocorreu um erro ao editar o cadastro. Verifique os dados.');
       setEditSuccess(false); // Marca como falha
     }
   };

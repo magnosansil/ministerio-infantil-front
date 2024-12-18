@@ -11,6 +11,7 @@ type EditConfirmationPopupProps = {
   handleCancel: () => void;
   editSuccess: boolean;
   editError: string | null;
+  isTurmasSection?: boolean; // Nova prop para verificar seção Turmas
 };
 
 const EditConfirmationPopup: React.FC<EditConfirmationPopupProps> = ({
@@ -21,6 +22,7 @@ const EditConfirmationPopup: React.FC<EditConfirmationPopupProps> = ({
   handleCancel,
   editSuccess,
   editError,
+  isTurmasSection,
 }) => {
   const [editedData, setEditedData] = useState(editTargetRow || {});
 
@@ -72,7 +74,10 @@ const EditConfirmationPopup: React.FC<EditConfirmationPopupProps> = ({
             }}
           >
             {Object.entries(editTargetRow).map(([key, value]) => {
-              const isCPFField = key === "cpf_professor" || key === "cpf_responsavel";
+              // Verifica se o campo é CPF do professor ou responsável
+              const isCPFField =
+                (key === "cpf_professor" && !isTurmasSection) || key === "cpf_responsavel";
+
               if (key !== primaryKey) {
                 return (
                   <div
@@ -90,15 +95,14 @@ const EditConfirmationPopup: React.FC<EditConfirmationPopupProps> = ({
                       type="text"
                       id={key}
                       value={editedData[key] || ""}
-                      disabled={isCPFField}
+                      
                       onChange={(e) => handleChange(e, key)}
                       style={{
                         flex: 1,
                         padding: "8px",
                         borderRadius: "4px",
                         border: "1px solid #ccc",
-                        backgroundColor: isCPFField ? "#f5f5f5" : "white",
-                        color: isCPFField ? "#999" : "#000",
+                     
                       }}
                     />
                   </div>
