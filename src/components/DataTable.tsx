@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { formatKeyTitle } from "../utils/formatadorKey";
 import {
   formatCPF,
@@ -10,7 +10,7 @@ import Arrow from "../assets/arrow.png";
 import View from "../assets/olho.png";
 import Edit from "../assets/lapis.png";
 import Delete from "../assets/lixeira.png";
-import { deleteRequest } from "../services/apiService";
+import { deleteRequest, fetchData } from "../services/apiService";
 import DeleteConfirmationPopup from "./DeleteConfirmationPopup";
 
 interface DataTableProps {
@@ -29,15 +29,22 @@ const DataTable: React.FC<DataTableProps> = ({ data, crudName }) => {
   const [deleteTargetRow, setDeleteTargetRow] = useState<any>(null);
   const [deleteSuccess, setDeleteSuccess] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
-  
+  const [fetchedData, setFetchedData] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (data && data.length > 0) {
+      setFetchedData(data);
+    }
+  }, [data]);
 
   const recordsPerPage = 10;
 
-  if (!data || data.length === 0) {
+  if (!fetchedData || fetchedData.length === 0) {
     return <p>Nenhum dado encontrado.</p>;
   }
 
-  const columns = Object.keys(data[0]);
+  const columns = Object.keys(fetchedData[0]);
+
 
   const formatValue = (column: string, value: any) => {
     if (value === null || value === undefined || value === "") {
@@ -61,7 +68,7 @@ const DataTable: React.FC<DataTableProps> = ({ data, crudName }) => {
     searchableColumns.push(idColumns[0]);
   }
 
-  const filteredData = data.filter((row) => {
+  const filteredData = fetchedData.filter((row) => {
     return searchableColumns.some((col) => {
       const value = String(row[col]).toLowerCase();
       return value.includes(searchTerm.toLowerCase());
@@ -96,11 +103,11 @@ const DataTable: React.FC<DataTableProps> = ({ data, crudName }) => {
   };
 
   const handleCloseDeletePopup = () => {
-    setDeleteModalVisible(false); 
+    setDeleteModalVisible(false);
     setDeleteModalVisible(false);
     setDeleteTargetRow(null);
     setDeleteError(null);
-  }
+  };
 
   const getPrimaryKey = (crudName: string) => {
     const primaryKeys: { [key: string]: string } = {
@@ -131,45 +138,52 @@ const DataTable: React.FC<DataTableProps> = ({ data, crudName }) => {
     setDeleteTargetRow(row);
   };
 
-  const handleDeleteItem = (item: Record<string, any>) => {
-    setDeleteTargetRow(item);
-    setDeleteError(null);
-    setDeleteModalVisible(true);
+
+  const refetchData = async () => {
+    const endpointMap: { [key: string]: string } = {
+      Crianças: "/crianca/todos",
+      Responsáveis: "/responsavel/todos",
+      Professores: "/professor/todos",
+      Turmas: "/turma/todos",
+    };
+
+    const endpoint = endpointMap[crudName];
+    const newData = await fetchData(endpoint);
+    setFetchedData(newData);
   };
 
   const handleDelete = async () => {
     if (deleteTargetRow) {
       const primaryKey = getPrimaryKey(crudName);
       const primaryKeyValue = deleteTargetRow[primaryKey];
-  
+
       const endpointMap: { [key: string]: string } = {
         Crianças: `/crianca/${primaryKeyValue}`,
         Responsáveis: `/responsavel/${primaryKeyValue}`,
         Professores: `/professor/${primaryKeyValue}`,
         Turmas: `/turma/${primaryKeyValue}`,
       };
-  
+
       const endpoint = endpointMap[crudName];
-  
+
       try {
         await deleteRequest(endpoint);
-        console.log(`Item ${primaryKeyValue} deletado com sucesso.`);
         setDeleteSuccess(true);
         setDeleteError(null);
-  
+
         setTimeout(() => {
           setDeleteModalVisible(false);
           setDeleteTargetRow(null);
           setDeleteSuccess(false);
+          refetchData();
         }, 2000);
       } catch (error) {
         console.error("Erro ao excluir o item:", error);
-        setDeleteError("Não foi possível excluir este cadastro"); 
-        setDeleteSuccess(false); 
+        setDeleteError("Não foi possível excluir este cadastro");
+        setDeleteSuccess(false);
       }
     }
   };
-  
 
   return (
     <div>
