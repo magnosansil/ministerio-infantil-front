@@ -10,8 +10,21 @@ import Arrow from "../assets/arrow.png";
 import View from "../assets/olho.png";
 import Edit from "../assets/lapis.png";
 import Delete from "../assets/lixeira.png";
+<<<<<<< Updated upstream
 import { deleteRequest, fetchData } from "../services/apiService";
 import DeleteConfirmationPopup from "./DeleteConfirmationPopup";
+=======
+import {
+  deleteRequest,
+  fetchData,
+  patchRequest,
+  postRequest,
+} from "../services/apiService";
+import DeleteConfirmationPopup from "./DeleteConfirmationPopup";
+import EditConfirmationPopup from "./EditButtonPopup";
+import { toast } from "react-toastify";
+import CadastroFormPopup from "./CadastroFormPopup";
+>>>>>>> Stashed changes
 
 interface DataTableProps {
   data: any[];
@@ -28,6 +41,18 @@ const DataTable: React.FC<DataTableProps> = ({ data, crudName }) => {
   const [isDeleteModalVisible, setDeleteModalVisible] = useState(false);
   const [deleteTargetRow, setDeleteTargetRow] = useState<any>(null);
   const [deleteSuccess, setDeleteSuccess] = useState(false);
+<<<<<<< Updated upstream
+=======
+  const [isEditModalVisible, setEditModalVisible] = useState(false);
+  const [editTargetRow, setEditTargetRow] = useState<any>(null);
+
+  const [editSuccess, setEditSuccess] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
+
+  const [createSuccess, setCreateSuccess] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
+
+>>>>>>> Stashed changes
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [fetchedData, setFetchedData] = useState<any[]>([]);
 
@@ -44,7 +69,16 @@ const DataTable: React.FC<DataTableProps> = ({ data, crudName }) => {
   }
 
   const columns = Object.keys(fetchedData[0]);
+<<<<<<< Updated upstream
 
+=======
+  const openEditModal = (row: any) => {
+    setEditTargetRow(row);
+    setEditModalVisible(true);
+    setEditSuccess(false);
+    setEditError(null);
+  };
+>>>>>>> Stashed changes
 
   const formatValue = (column: string, value: any) => {
     if (value === null || value === undefined || value === "") {
@@ -94,13 +128,79 @@ const DataTable: React.FC<DataTableProps> = ({ data, crudName }) => {
     setPopupVisible(false);
   };
 
-  const handleCadastrar = () => {
-    setCadastroPopupVisible(true);
+  const handleCadastro = async (newData: any) => {
+    const endpointMap: { [key: string]: string } = {
+      Crianças: "/crianca/cadastrar",
+      Responsáveis: "/responsavel/cadastrar",
+      Professores: "/professor/cadastrar",
+      Turmas: "/turma/cadastrar",
+    };
+
+    const endpoint = endpointMap[crudName];
+
+    try {
+      await postRequest(endpoint, newData);
+      setCreateSuccess(true);
+      setCreateError(null);
+      setTimeout(() => setCadastroPopupVisible(false), 2000); // Fecha o popup após 2 segundos
+      refetchData(); // Atualiza os dados na tabela
+    } catch (error) {
+      console.error("Erro ao cadastrar o item:", error);
+      setCreateSuccess(false);
+      setCreateError(
+        "Ocorreu um erro ao cadastrar o item. Verifique os dados."
+      );
+    }
   };
 
   const handleCloseCadastroPopup = () => {
     setCadastroPopupVisible(false);
   };
+<<<<<<< Updated upstream
+=======
+
+  const removeCircularReferences = (obj: any) => {
+    const seen = new WeakSet();
+    const clone = JSON.parse(
+      JSON.stringify(obj, (key, value) => {
+        if (typeof value === "object" && value !== null) {
+          if (seen.has(value)) {
+            return; // Remover circular
+          }
+          seen.add(value);
+        }
+        return value;
+      })
+    );
+    return clone;
+  };
+
+  const handleEdit = async (updatedRow: any) => {
+    const cleanedRow = removeCircularReferences(updatedRow);
+    const primaryKeyValue = cleanedRow[primaryKey];
+
+    const endpointMap: { [key: string]: string } = {
+      Crianças: `/crianca/${primaryKeyValue}`,
+      Responsáveis: `/responsavel/${primaryKeyValue}`,
+      Professores: `/professor/${primaryKeyValue}`,
+      Turmas: `/turma/${primaryKeyValue}`,
+    };
+
+    const endpoint = endpointMap[crudName];
+
+    try {
+      await patchRequest(endpoint, cleanedRow);
+      setEditSuccess(true); // Marca sucesso
+      setEditError(null);
+      setTimeout(() => setEditModalVisible(false), 2000); // Fecha o modal após 2 segundos
+      refetchData();
+    } catch (error) {
+      console.error("Erro ao editar o item:", error);
+      toast.error("Ocorreu um erro ao editar o cadastro. Verifique os dados.");
+      setEditSuccess(false); // Marca como falha
+    }
+  };
+>>>>>>> Stashed changes
 
   const handleCloseDeletePopup = () => {
     setDeleteModalVisible(false);
@@ -288,7 +388,15 @@ const DataTable: React.FC<DataTableProps> = ({ data, crudName }) => {
                     <img
                       src={Edit}
                       alt="Editar"
+<<<<<<< Updated upstream
                       onClick={() => handleOpenPopup("Editar Cadastro", row)}
+=======
+                      onClick={() => {
+                        openEditModal(row);
+                        setEditTargetRow(row); // Define a linha a ser editada
+                        setEditModalVisible(true); // Abre o modal de edição
+                      }}
+>>>>>>> Stashed changes
                       style={{
                         cursor: "pointer",
                         width: "16px",
@@ -383,7 +491,7 @@ const DataTable: React.FC<DataTableProps> = ({ data, crudName }) => {
         </button>
       </div>
       <button
-        onClick={handleCadastrar}
+        onClick={() => setCadastroPopupVisible(true)}
         className="btn-action"
         style={{
           display: "block",
@@ -403,8 +511,9 @@ const DataTable: React.FC<DataTableProps> = ({ data, crudName }) => {
       <Popup
         isVisible={isCadastroPopupVisible}
         title={`Cadastrar ${crudName}`}
-        onClose={handleCloseCadastroPopup}
+        onClose={() => setCadastroPopupVisible(false)} // Fecha o popup
       >
+<<<<<<< Updated upstream
         <h2>Formulário de Cadastro</h2>
       </Popup>
 
@@ -422,6 +531,14 @@ const DataTable: React.FC<DataTableProps> = ({ data, crudName }) => {
             ))}
           </div>
         )}
+=======
+        <CadastroFormPopup
+          isVisible={isCadastroPopupVisible}
+          onSubmit={handleCadastro} // Função para enviar os dados
+          initialData={{}} // Dados iniciais vazios
+          onCancel={() => setCadastroPopupVisible(false)} // Cancela e fecha
+        />
+>>>>>>> Stashed changes
       </Popup>
 
       <Popup
@@ -438,7 +555,36 @@ const DataTable: React.FC<DataTableProps> = ({ data, crudName }) => {
           deleteSuccess={deleteSuccess}
           deleteError={deleteError}
         />
+<<<<<<< Updated upstream
       </Popup>
+=======
+        <EditConfirmationPopup
+          isVisible={isEditModalVisible}
+          editTargetRow={editTargetRow}
+          primaryKey={primaryKey}
+          handleEdit={handleEdit} // Passa função de edição
+          handleCancel={() => setEditModalVisible(false)}
+          editSuccess={editSuccess} // Mensagem de sucesso
+          editError={editError} // Mensagem de erro
+        />
+      </Popup>
+
+      <Popup
+        isVisible={isEditModalVisible}
+        title="Editar Cadastro"
+        onClose={() => setEditModalVisible(false)}
+      >
+        <EditConfirmationPopup
+          isVisible={isEditModalVisible}
+          editTargetRow={editTargetRow}
+          primaryKey={primaryKey}
+          handleEdit={handleEdit} // Passando a função handleEdit
+          handleCancel={() => setEditModalVisible(false)}
+          editSuccess={editSuccess} // Passando o estado de sucesso da edição
+          editError={editError} // Passando o estado de erro da edição
+        />
+      </Popup>
+>>>>>>> Stashed changes
     </div>
   );
 };
