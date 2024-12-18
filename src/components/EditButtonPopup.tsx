@@ -21,7 +21,6 @@ const EditConfirmationPopup: React.FC<EditConfirmationPopupProps> = ({
   handleCancel,
   editSuccess,
   editError,
-  isTurmasSection,
 }) => {
   const [editedData, setEditedData] = useState(editTargetRow || {});
 

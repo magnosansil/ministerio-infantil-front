@@ -19,9 +19,16 @@ export const fetchData = async (endpoint: string): Promise<any[]> => {
   }
 };
 
-export const postRequest = async <T>(url: string, data: T): Promise<void> => {
-  await api.post(url, data);
+export const postRequest = async (url: string, data: Record<string, any>) => {
+  try {
+    const response = await api.post(url, data);
+    return response.data;
+  } catch (error) {
+    console.error("Erro ao realizar a requisição", error);
+    throw new Error("Erro ao realizar a requisição");
+  }
 };
+
 
 export const deleteRequest = async (url: string): Promise<void> => {
   await api.delete(url);

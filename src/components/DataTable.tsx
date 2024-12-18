@@ -10,12 +10,16 @@ import Arrow from "../assets/arrow.png";
 import View from "../assets/olho.png";
 import Edit from "../assets/lapis.png";
 import Delete from "../assets/lixeira.png";
-import { deleteRequest, fetchData , patchRequest } from "../services/apiService";
+import {
+  deleteRequest,
+  fetchData,
+  patchRequest,
+  postRequest,
+} from "../services/apiService";
 import DeleteConfirmationPopup from "./DeleteConfirmationPopup";
 import EditConfirmationPopup from "./EditButtonPopup";
-import { toast } from 'react-toastify';
-
-
+import { toast } from "react-toastify";
+import CadastroFormPopup from "./CadastroFormPopup";
 
 interface DataTableProps {
   data: any[];
@@ -25,7 +29,6 @@ interface DataTableProps {
 const DataTable: React.FC<DataTableProps> = ({ data, crudName }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isPopupVisible, setPopupVisible] = useState(false);
-  const [isCadastroPopupVisible, setCadastroPopupVisible] = useState(false);
   const [currentRowData, setCurrentRowData] = useState<any>(null);
   const [currentPopupTitle, setCurrentPopupTitle] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -35,12 +38,19 @@ const DataTable: React.FC<DataTableProps> = ({ data, crudName }) => {
   const [isEditModalVisible, setEditModalVisible] = useState(false);
   const [editTargetRow, setEditTargetRow] = useState<any>(null);
 
-const [editSuccess, setEditSuccess] = useState(false);
-const [editError, setEditError] = useState<string | null>(null);
-
+  const [editSuccess, setEditSuccess] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
 
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [fetchedData, setFetchedData] = useState<any[]>([]);
+
+  const [isCadastroPopupVisible, setCadastroPopupVisible] = useState(false);
+  const [popupInitialData, setPopupInitialData] = useState<Record<string, any>>(
+    {}
+  );
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [tableData, setTableData] = useState<any[]>([]);
 
   useEffect(() => {
     if (data && data.length > 0) {
@@ -56,10 +66,10 @@ const [editError, setEditError] = useState<string | null>(null);
 
   const columns = Object.keys(fetchedData[0]);
   const openEditModal = (row: any) => {
-    setEditTargetRow(row);        
-    setEditModalVisible(true);   
-    setEditSuccess(false);     
-    setEditError(null);         
+    setEditTargetRow(row);
+    setEditModalVisible(true);
+    setEditSuccess(false);
+    setEditError(null);
   };
 
   const formatValue = (column: string, value: any) => {
@@ -110,58 +120,88 @@ const [editError, setEditError] = useState<string | null>(null);
     setPopupVisible(false);
   };
 
-  const handleCadastrar = () => {
+  const handleOpenCadastroPopup = () => {
+    setPopupInitialData({});
     setCadastroPopupVisible(true);
+    setSuccessMessage(null);
+    setErrorMessage(null);
   };
 
   const handleCloseCadastroPopup = () => {
     setCadastroPopupVisible(false);
   };
-  
-  
-  
+
   const removeCircularReferences = (obj: any) => {
     const seen = new WeakSet();
-    const clone = JSON.parse(JSON.stringify(obj, (key, value) => {
-      if (typeof value === "object" && value !== null) {
-        if (seen.has(value)) {
-          return; // Remover circular
+    const clone = JSON.parse(
+      JSON.stringify(obj, (key, value) => {
+        if (typeof value === "object" && value !== null) {
+          if (seen.has(value)) {
+            return;
+          }
+          seen.add(value);
         }
-        seen.add(value);
-      }
-      return value;
-    }));
+        return value;
+      })
+    );
     return clone;
+  };
+
+  const handleCadastroSubmit = async (data: Record<string, any>) => {
+    const endpointMap: { [key: string]: string } = {
+      Crianças: `/crianca/cadastrar`,
+      Responsáveis: `/responsavel/cadastrar`,
+      Professores: `/professor/cadastrar`,
+      Turmas: `/turma/cadastrar`,
+    };
+  
+    try {
+      const endpoint = endpointMap[crudName];
+      if (!endpoint) {
+        throw new Error("Endpoint não encontrado para o CRUD especificado.");
+      }
+  
+      const response = await postRequest(endpoint, data); 
+  
+      setTableData((prev) => [...prev, response]);
+      setSuccessMessage("Cadastro realizado com sucesso!");
+      toast.success("Cadastro realizado com sucesso!");
+      setCadastroPopupVisible(false);
+      refetchData();
+    } catch (error) {
+      console.error("Erro ao cadastrar:", error);
+      setErrorMessage("Falha ao cadastrar. Tente novamente.");
+      toast.error("Falha ao cadastrar. Tente novamente.");
+    }
   };
   
   
+
   const handleEdit = async (updatedRow: any) => {
     const cleanedRow = removeCircularReferences(updatedRow);
     const primaryKeyValue = cleanedRow[primaryKey];
-  
+
     const endpointMap: { [key: string]: string } = {
       Crianças: `/crianca/${primaryKeyValue}`,
       Responsáveis: `/responsavel/${primaryKeyValue}`,
       Professores: `/professor/${primaryKeyValue}`,
       Turmas: `/turma/${primaryKeyValue}`,
     };
-  
+
     const endpoint = endpointMap[crudName];
-  
+
     try {
       await patchRequest(endpoint, cleanedRow);
-      setEditSuccess(true); // Marca sucesso
+      setEditSuccess(true);
       setEditError(null);
-      setTimeout(() => setEditModalVisible(false), 2000); // Fecha o modal após 2 segundos
+      setTimeout(() => setEditModalVisible(false), 2000);
       refetchData();
     } catch (error) {
       console.error("Erro ao editar o item:", error);
-      toast.error('Ocorreu um erro ao editar o cadastro. Verifique os dados.');
-      setEditSuccess(false); // Marca como falha
+      toast.error("Ocorreu um erro ao editar o cadastro. Verifique os dados.");
+      setEditSuccess(false);
     }
   };
-  
-  
 
   const handleCloseDeletePopup = () => {
     setDeleteModalVisible(false);
@@ -349,9 +389,9 @@ const [editError, setEditError] = useState<string | null>(null);
                       src={Edit}
                       alt="Editar"
                       onClick={() => {
-                        openEditModal(row)
-                        setEditTargetRow(row); // Define a linha a ser editada
-                        setEditModalVisible(true); // Abre o modal de edição
+                        openEditModal(row);
+                        setEditTargetRow(row);
+                        setEditModalVisible(true);
                       }}
                       style={{
                         cursor: "pointer",
@@ -448,7 +488,7 @@ const [editError, setEditError] = useState<string | null>(null);
         </button>
       </div>
       <button
-        onClick={handleCadastrar}
+        onClick={handleOpenCadastroPopup}
         className="btn-action"
         style={{
           display: "block",
@@ -470,9 +510,16 @@ const [editError, setEditError] = useState<string | null>(null);
         title={`Cadastrar ${crudName}`}
         onClose={handleCloseCadastroPopup}
       >
-        <h2>Formulário de Cadastro</h2>
+        <CadastroFormPopup
+          isVisible={isCadastroPopupVisible}
+          primaryKey={primaryKey}
+          columns={Object.keys(fetchedData[0])}
+          onSubmit={handleCadastroSubmit}
+          onCancel={handleCloseCadastroPopup}
+          successMessage={successMessage || undefined}
+          //errorMessage={errorMessage}
+        />
       </Popup>
-      
 
       <Popup
         isVisible={isPopupVisible}
@@ -505,33 +552,30 @@ const [editError, setEditError] = useState<string | null>(null);
           deleteError={deleteError}
         />
         <EditConfirmationPopup
-  isVisible={isEditModalVisible}
-  editTargetRow={editTargetRow}
-  primaryKey={primaryKey}
-  handleEdit={handleEdit} // Passa função de edição
-  handleCancel={() => setEditModalVisible(false)}
-  editSuccess={editSuccess} // Mensagem de sucesso
-  editError={editError} // Mensagem de erro
-/>
-
+          isVisible={isEditModalVisible}
+          editTargetRow={editTargetRow}
+          primaryKey={primaryKey}
+          handleEdit={handleEdit}
+          handleCancel={() => setEditModalVisible(false)}
+          editSuccess={editSuccess}
+          editError={editError}
+        />
       </Popup>
       <Popup
-  isVisible={isEditModalVisible}
-  title="Editar Cadastro"
-  onClose={() => setEditModalVisible(false)}
->
-<EditConfirmationPopup
-  isVisible={isEditModalVisible}
-  editTargetRow={editTargetRow}
-  primaryKey={primaryKey}
-  handleEdit={handleEdit} // Passando a função handleEdit
-  handleCancel={() => setEditModalVisible(false)}
-  editSuccess={editSuccess} // Passando o estado de sucesso da edição
-  editError={editError} // Passando o estado de erro da edição
-/>
-
-</Popup>
-
+        isVisible={isEditModalVisible}
+        title="Editar Cadastro"
+        onClose={() => setEditModalVisible(false)}
+      >
+        <EditConfirmationPopup
+          isVisible={isEditModalVisible}
+          editTargetRow={editTargetRow}
+          primaryKey={primaryKey}
+          handleEdit={handleEdit}
+          handleCancel={() => setEditModalVisible(false)}
+          editSuccess={editSuccess}
+          editError={editError}
+        />
+      </Popup>
     </div>
   );
 };

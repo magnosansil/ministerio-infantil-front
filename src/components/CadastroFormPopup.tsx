@@ -1,36 +1,36 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { formatKeyTitle } from "../utils/formatadorKey";
 
-const CadastroFormPopup: React.FC<{
+type CadastroFormPopupProps = {
   isVisible: boolean;
-  initialData?: Record<string, any>;
-  onSubmit: (data: Record<string, any>) => Promise<void>; // Alterado
-  onCancel: () => void; // Alterado
+  primaryKey: string;
+  columns: string[];
+  onSubmit: (data: Record<string, any>) => Promise<void>;
+  onCancel: () => void;
   successMessage?: string;
   errorMessage?: string | null;
-  requiredFields?: string[];
-  dropdownOptions?: Record<string, string[]>; // Chave do campo e array de opções
-}> = ({
+};
+
+const CadastroFormPopup: React.FC<CadastroFormPopupProps> = ({
   isVisible,
-  initialData = {},
-  onSubmit, // Alterado
-  onCancel, // Alterado
+  primaryKey,
+  columns,
+  onSubmit,
+  onCancel,
   successMessage,
   errorMessage,
-  requiredFields = [],
-  dropdownOptions = {},
 }) => {
-  const [formData, setFormData] = useState(initialData);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const initialState = columns.reduce((acc, column) => {
+    acc[column] = "";
+    return acc;
+  }, {} as Record<string, any>);
 
-  useEffect(() => {
-    setFormData(initialData);
-  }, [initialData]);
+  const [formData, setFormData] = useState<Record<string, any>>(initialState);
 
   if (!isVisible) return null;
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+    e: React.ChangeEvent<HTMLInputElement>,
     key: string
   ) => {
     setFormData({
@@ -39,32 +39,35 @@ const CadastroFormPopup: React.FC<{
     });
   };
 
-  const validateForm = () => {
-    const newErrors: Record<string, string> = {};
-    requiredFields.forEach((field) => {
-      if (!formData[field]) {
-        newErrors[field] = "Este campo é obrigatório.";
-      }
-    });
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleFormSubmit = async () => {
-    if (validateForm()) {
+  const handleSubmit = async () => {
+    try {
       await onSubmit(formData);
+    } catch (error) {
+      console.error("Erro ao cadastrar:", error);
     }
   };
 
   return (
     <div style={{ padding: "20px" }}>
       {successMessage && (
-        <div style={{ textAlign: "center", color: "green", marginBottom: "15px" }}>
+        <div
+          style={{
+            textAlign: "center",
+            color: "green",
+            marginBottom: "15px",
+          }}
+        >
           <strong>{successMessage}</strong>
         </div>
       )}
       {errorMessage && (
-        <div style={{ textAlign: "center", color: "red", marginBottom: "15px" }}>
+        <div
+          style={{
+            textAlign: "center",
+            color: "red",
+            marginBottom: "15px",
+          }}
+        >
           <strong>{errorMessage}</strong>
         </div>
       )}
@@ -74,51 +77,41 @@ const CadastroFormPopup: React.FC<{
           display: "flex",
           flexDirection: "column",
           gap: "10px",
+          maxHeight: "60vh",
+          overflow: "auto",
         }}
       >
-        {Object.entries({ ...initialData, ...formData }).map(([key, value]) => {
-          const isDropdown = dropdownOptions[key];
+        {columns.map((key) => {
+          if (key === primaryKey) {
+            return null;
+          }
           return (
-            <div key={key} style={{ display: "flex", flexDirection: "column" }}>
-              <label htmlFor={key} style={{ fontWeight: "bold" }}>
-                {formatKeyTitle(key)}:{requiredFields.includes(key) && " *"}
+            <div
+              key={key}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "10px",
+              }}
+            >
+              <label
+                htmlFor={key}
+                style={{ minWidth: "120px", fontWeight: "bold" }}
+              >
+                {formatKeyTitle(key)}:
               </label>
-
-              {isDropdown ? (
-                <select
-                  id={key}
-                  value={formData[key] || ""}
-                  onChange={(e) => handleChange(e, key)}
-                  style={{
-                    padding: "8px",
-                    borderRadius: "4px",
-                    border: "1px solid #ccc",
-                  }}
-                >
-                  <option value="">Selecione uma opção</option>
-                  {dropdownOptions[key]?.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
-              ) : (
-                <input
-                  type="text"
-                  id={key}
-                  value={formData[key] || ""}
-                  onChange={(e) => handleChange(e, key)}
-                  style={{
-                    padding: "8px",
-                    borderRadius: "4px",
-                    border: "1px solid #ccc",
-                  }}
-                />
-              )}
-
-              {errors[key] && (
-                <span style={{ color: "red", fontSize: "12px" }}>{errors[key]}</span>
-              )}
+              <input
+                type="text"
+                id={key}
+                value={formData[key] || ""}
+                onChange={(e) => handleChange(e, key)}
+                style={{
+                  flex: 1,
+                  padding: "8px",
+                  borderRadius: "4px",
+                  border: "1px solid #ccc",
+                }}
+              />
             </div>
           );
         })}
@@ -146,7 +139,8 @@ const CadastroFormPopup: React.FC<{
           Cancelar
         </button>
         <button
-          onClick={handleFormSubmit}
+          onClick={handleSubmit}
+          type="submit"
           style={{
             padding: "10px 15px",
             backgroundColor: "green",
