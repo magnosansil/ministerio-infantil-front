@@ -10,6 +10,8 @@ import Arrow from "../assets/arrow.png";
 import View from "../assets/olho.png";
 import Edit from "../assets/lapis.png";
 import Delete from "../assets/lixeira.png";
+import { deleteRequest } from "../services/apiService";
+import DeleteConfirmationPopup from "./DeleteConfirmationPopup";
 
 interface DataTableProps {
   data: any[];
@@ -23,6 +25,12 @@ const DataTable: React.FC<DataTableProps> = ({ data, crudName }) => {
   const [currentRowData, setCurrentRowData] = useState<any>(null);
   const [currentPopupTitle, setCurrentPopupTitle] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [isDeleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [deleteTargetRow, setDeleteTargetRow] = useState<any>(null);
+  const [deleteSuccess, setDeleteSuccess] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  
+
   const recordsPerPage = 10;
 
   if (!data || data.length === 0) {
@@ -87,6 +95,13 @@ const DataTable: React.FC<DataTableProps> = ({ data, crudName }) => {
     setCadastroPopupVisible(false);
   };
 
+  const handleCloseDeletePopup = () => {
+    setDeleteModalVisible(false); 
+    setDeleteModalVisible(false);
+    setDeleteTargetRow(null);
+    setDeleteError(null);
+  }
+
   const getPrimaryKey = (crudName: string) => {
     const primaryKeys: { [key: string]: string } = {
       Crianças: "id",
@@ -110,6 +125,51 @@ const DataTable: React.FC<DataTableProps> = ({ data, crudName }) => {
       setCurrentPage(currentPage - 1);
     }
   };
+
+  const handleDeleteConfirmation = (row: any) => {
+    setDeleteModalVisible(true);
+    setDeleteTargetRow(row);
+  };
+
+  const handleDeleteItem = (item: Record<string, any>) => {
+    setDeleteTargetRow(item);
+    setDeleteError(null);
+    setDeleteModalVisible(true);
+  };
+
+  const handleDelete = async () => {
+    if (deleteTargetRow) {
+      const primaryKey = getPrimaryKey(crudName);
+      const primaryKeyValue = deleteTargetRow[primaryKey];
+  
+      const endpointMap: { [key: string]: string } = {
+        Crianças: `/crianca/${primaryKeyValue}`,
+        Responsáveis: `/responsavel/${primaryKeyValue}`,
+        Professores: `/professor/${primaryKeyValue}`,
+        Turmas: `/turma/${primaryKeyValue}`,
+      };
+  
+      const endpoint = endpointMap[crudName];
+  
+      try {
+        await deleteRequest(endpoint);
+        console.log(`Item ${primaryKeyValue} deletado com sucesso.`);
+        setDeleteSuccess(true);
+        setDeleteError(null);
+  
+        setTimeout(() => {
+          setDeleteModalVisible(false);
+          setDeleteTargetRow(null);
+          setDeleteSuccess(false);
+        }, 2000);
+      } catch (error) {
+        console.error("Erro ao excluir o item:", error);
+        setDeleteError("Não foi possível excluir este cadastro"); 
+        setDeleteSuccess(false); 
+      }
+    }
+  };
+  
 
   return (
     <div>
@@ -195,7 +255,7 @@ const DataTable: React.FC<DataTableProps> = ({ data, crudName }) => {
                       backgroundColor: "#003884",
                       padding: "8px 15px",
                       position: "sticky",
-                      right: "0",
+                      right: "-1px",
                     }}
                   >
                     <img
@@ -225,7 +285,7 @@ const DataTable: React.FC<DataTableProps> = ({ data, crudName }) => {
                     <img
                       src={Delete}
                       alt="Excluir"
-                      onClick={() => handleOpenPopup("Excluir Cadastro", row)}
+                      onClick={() => handleDeleteConfirmation(row)}
                       style={{
                         cursor: "pointer",
                         width: "16px",
@@ -348,6 +408,22 @@ const DataTable: React.FC<DataTableProps> = ({ data, crudName }) => {
             ))}
           </div>
         )}
+      </Popup>
+
+      <Popup
+        isVisible={isDeleteModalVisible}
+        title="Confirmar Exclusão"
+        onClose={handleCloseDeletePopup}
+      >
+        <DeleteConfirmationPopup
+          isVisible={isDeleteModalVisible}
+          deleteTargetRow={deleteTargetRow}
+          primaryKey={primaryKey}
+          handleDelete={handleDelete}
+          handleCancel={handleCloseDeletePopup}
+          deleteSuccess={deleteSuccess}
+          deleteError={deleteError}
+        />
       </Popup>
     </div>
   );
