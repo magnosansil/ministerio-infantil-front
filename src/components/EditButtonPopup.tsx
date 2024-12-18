@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { formatKeyTitle } from "../utils/formatadorKey";
 import { formatCPF } from "../utils/formatadorDados";
-import EditIcon from "../assets/lapis.png";
 
 type EditConfirmationPopupProps = {
   isVisible: boolean;
@@ -11,7 +10,7 @@ type EditConfirmationPopupProps = {
   handleCancel: () => void;
   editSuccess: boolean;
   editError: string | null;
-  isTurmasSection?: boolean; // Nova prop para verificar seção Turmas
+  isTurmasSection?: boolean;
 };
 
 const EditConfirmationPopup: React.FC<EditConfirmationPopupProps> = ({
@@ -32,7 +31,10 @@ const EditConfirmationPopup: React.FC<EditConfirmationPopupProps> = ({
 
   if (!isVisible || !editTargetRow) return null;
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>, key: string) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    key: string
+  ) => {
     setEditedData({
       ...editedData,
       [key]: e.target.value,
@@ -42,12 +44,16 @@ const EditConfirmationPopup: React.FC<EditConfirmationPopupProps> = ({
   return (
     <div style={{ padding: "20px" }}>
       {editSuccess && (
-        <div style={{ textAlign: "center", color: "green", marginBottom: "15px" }}>
+        <div
+          style={{ textAlign: "center", color: "green", marginBottom: "15px" }}
+        >
           <strong>Cadastro editado com sucesso!</strong>
         </div>
       )}
       {editError && (
-        <div style={{ textAlign: "center", color: "red", marginBottom: "15px" }}>
+        <div
+          style={{ textAlign: "center", color: "red", marginBottom: "15px" }}
+        >
           <strong>{editError}</strong>
         </div>
       )}
@@ -60,8 +66,6 @@ const EditConfirmationPopup: React.FC<EditConfirmationPopupProps> = ({
               {primaryKey === "cpf"
                 ? formatCPF(editTargetRow[primaryKey])
                 : editTargetRow[primaryKey]}
-              <br />
-              {editTargetRow.nome && <>Nome: {editTargetRow.nome}</>}
             </strong>
           </p>
 
@@ -71,13 +75,11 @@ const EditConfirmationPopup: React.FC<EditConfirmationPopupProps> = ({
               display: "flex",
               flexDirection: "column",
               gap: "10px",
+              maxHeight: "60vh",
+              overflow: "auto",
             }}
           >
-            {Object.entries(editTargetRow).map(([key, value]) => {
-              // Verifica se o campo é CPF do professor ou responsável
-              const isCPFField =
-                (key === "cpf_professor" && !isTurmasSection) || key === "cpf_responsavel";
-
+            {Object.entries(editTargetRow).map(([key]) => {
               if (key !== primaryKey) {
                 return (
                   <div
@@ -88,21 +90,22 @@ const EditConfirmationPopup: React.FC<EditConfirmationPopupProps> = ({
                       gap: "10px",
                     }}
                   >
-                    <label htmlFor={key} style={{ minWidth: "120px", fontWeight: "bold" }}>
+                    <label
+                      htmlFor={key}
+                      style={{ minWidth: "120px", fontWeight: "bold" }}
+                    >
                       {formatKeyTitle(key)}:
                     </label>
                     <input
                       type="text"
                       id={key}
                       value={editedData[key] || ""}
-                      
                       onChange={(e) => handleChange(e, key)}
                       style={{
                         flex: 1,
                         padding: "8px",
                         borderRadius: "4px",
                         border: "1px solid #ccc",
-                     
                       }}
                     />
                   </div>

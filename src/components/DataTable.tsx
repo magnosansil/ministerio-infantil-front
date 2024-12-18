@@ -56,10 +56,10 @@ const [editError, setEditError] = useState<string | null>(null);
 
   const columns = Object.keys(fetchedData[0]);
   const openEditModal = (row: any) => {
-    setEditTargetRow(row);        // Define a linha que será editada
-    setEditModalVisible(true);    // Abre o modal
-    setEditSuccess(false);        // Reseta o sucesso
-    setEditError(null);           // Reseta o erro
+    setEditTargetRow(row);        
+    setEditModalVisible(true);   
+    setEditSuccess(false);     
+    setEditError(null);         
   };
 
   const formatValue = (column: string, value: any) => {
