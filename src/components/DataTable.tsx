@@ -372,7 +372,7 @@ const DataTable: React.FC<DataTableProps> = ({ data, crudName }) => {
                       right: "-1px",
                     }}
                   >
-                    <img
+                    {/* <img
                       src={View}
                       alt="Visualizar"
                       onClick={() =>
@@ -384,7 +384,7 @@ const DataTable: React.FC<DataTableProps> = ({ data, crudName }) => {
                         height: "auto",
                         marginRight: "15px",
                       }}
-                    />
+                    /> */}
                     <img
                       src={Edit}
                       alt="Editar"
