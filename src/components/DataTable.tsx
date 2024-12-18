@@ -10,8 +10,11 @@ import Arrow from "../assets/arrow.png";
 import View from "../assets/olho.png";
 import Edit from "../assets/lapis.png";
 import Delete from "../assets/lixeira.png";
-import { deleteRequest, fetchData } from "../services/apiService";
+import { deleteRequest, fetchData , patchRequest } from "../services/apiService";
 import DeleteConfirmationPopup from "./DeleteConfirmationPopup";
+import EditConfirmationPopup from "./EditButtonPopup";
+
+
 
 interface DataTableProps {
   data: any[];
@@ -28,6 +31,13 @@ const DataTable: React.FC<DataTableProps> = ({ data, crudName }) => {
   const [isDeleteModalVisible, setDeleteModalVisible] = useState(false);
   const [deleteTargetRow, setDeleteTargetRow] = useState<any>(null);
   const [deleteSuccess, setDeleteSuccess] = useState(false);
+  const [isEditModalVisible, setEditModalVisible] = useState(false);
+  const [editTargetRow, setEditTargetRow] = useState<any>(null);
+
+const [editSuccess, setEditSuccess] = useState(false);
+const [editError, setEditError] = useState<string | null>(null);
+
+
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [fetchedData, setFetchedData] = useState<any[]>([]);
 
@@ -44,7 +54,12 @@ const DataTable: React.FC<DataTableProps> = ({ data, crudName }) => {
   }
 
   const columns = Object.keys(fetchedData[0]);
-
+  const openEditModal = (row: any) => {
+    setEditTargetRow(row);        // Define a linha que será editada
+    setEditModalVisible(true);    // Abre o modal
+    setEditSuccess(false);        // Reseta o sucesso
+    setEditError(null);           // Reseta o erro
+  };
 
   const formatValue = (column: string, value: any) => {
     if (value === null || value === undefined || value === "") {
@@ -101,6 +116,51 @@ const DataTable: React.FC<DataTableProps> = ({ data, crudName }) => {
   const handleCloseCadastroPopup = () => {
     setCadastroPopupVisible(false);
   };
+  
+  
+  
+  const removeCircularReferences = (obj: any) => {
+    const seen = new WeakSet();
+    const clone = JSON.parse(JSON.stringify(obj, (key, value) => {
+      if (typeof value === "object" && value !== null) {
+        if (seen.has(value)) {
+          return; // Remover circular
+        }
+        seen.add(value);
+      }
+      return value;
+    }));
+    return clone;
+  };
+  
+  
+  const handleEdit = async (updatedRow: any) => {
+    const cleanedRow = removeCircularReferences(updatedRow);
+    const primaryKeyValue = cleanedRow[primaryKey];
+  
+    const endpointMap: { [key: string]: string } = {
+      Crianças: `/crianca/${primaryKeyValue}`,
+      Responsáveis: `/responsavel/${primaryKeyValue}`,
+      Professores: `/professor/${primaryKeyValue}`,
+      Turmas: `/turma/${primaryKeyValue}`,
+    };
+  
+    const endpoint = endpointMap[crudName];
+  
+    try {
+      await patchRequest(endpoint, cleanedRow);
+      setEditSuccess(true); // Marca sucesso
+      setEditError(null);
+      setTimeout(() => setEditModalVisible(false), 2000); // Fecha o modal após 2 segundos
+      refetchData();
+    } catch (error) {
+      console.error("Erro ao editar o item:", error);
+      setEditError("Não foi possível editar o cadastro");
+      setEditSuccess(false); // Marca como falha
+    }
+  };
+  
+  
 
   const handleCloseDeletePopup = () => {
     setDeleteModalVisible(false);
@@ -137,7 +197,6 @@ const DataTable: React.FC<DataTableProps> = ({ data, crudName }) => {
     setDeleteModalVisible(true);
     setDeleteTargetRow(row);
   };
-
 
   const refetchData = async () => {
     const endpointMap: { [key: string]: string } = {
@@ -288,7 +347,11 @@ const DataTable: React.FC<DataTableProps> = ({ data, crudName }) => {
                     <img
                       src={Edit}
                       alt="Editar"
-                      onClick={() => handleOpenPopup("Editar Cadastro", row)}
+                      onClick={() => {
+                        openEditModal(row)
+                        setEditTargetRow(row); // Define a linha a ser editada
+                        setEditModalVisible(true); // Abre o modal de edição
+                      }}
                       style={{
                         cursor: "pointer",
                         width: "16px",
@@ -296,6 +359,7 @@ const DataTable: React.FC<DataTableProps> = ({ data, crudName }) => {
                         marginRight: "15px",
                       }}
                     />
+
                     <img
                       src={Delete}
                       alt="Excluir"
@@ -407,6 +471,7 @@ const DataTable: React.FC<DataTableProps> = ({ data, crudName }) => {
       >
         <h2>Formulário de Cadastro</h2>
       </Popup>
+      
 
       <Popup
         isVisible={isPopupVisible}
@@ -438,7 +503,34 @@ const DataTable: React.FC<DataTableProps> = ({ data, crudName }) => {
           deleteSuccess={deleteSuccess}
           deleteError={deleteError}
         />
+        <EditConfirmationPopup
+  isVisible={isEditModalVisible}
+  editTargetRow={editTargetRow}
+  primaryKey={primaryKey}
+  handleEdit={handleEdit} // Passa função de edição
+  handleCancel={() => setEditModalVisible(false)}
+  editSuccess={editSuccess} // Mensagem de sucesso
+  editError={editError} // Mensagem de erro
+/>
+
       </Popup>
+      <Popup
+  isVisible={isEditModalVisible}
+  title="Editar Cadastro"
+  onClose={() => setEditModalVisible(false)}
+>
+<EditConfirmationPopup
+  isVisible={isEditModalVisible}
+  editTargetRow={editTargetRow}
+  primaryKey={primaryKey}
+  handleEdit={handleEdit} // Passando a função handleEdit
+  handleCancel={() => setEditModalVisible(false)}
+  editSuccess={editSuccess} // Passando o estado de sucesso da edição
+  editError={editError} // Passando o estado de erro da edição
+/>
+
+</Popup>
+
     </div>
   );
 };
