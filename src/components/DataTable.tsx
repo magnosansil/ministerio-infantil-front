@@ -10,6 +10,7 @@ import Arrow from "../assets/arrow.png";
 import View from "../assets/olho.png";
 import Edit from "../assets/lapis.png";
 import Delete from "../assets/lixeira.png";
+import FormAdd from "./FormAdd";
 
 interface DataTableProps {
   data: any[];
@@ -332,6 +333,7 @@ const DataTable: React.FC<DataTableProps> = ({ data, crudName }) => {
         onClose={handleCloseCadastroPopup}
       >
         <h2>Formulário de Cadastro</h2>
+        <FormAdd/>
       </Popup>
 
       <Popup
